@@ -1,4 +1,4 @@
-package com.boke.soft.common
+package com.boke.soft.dsj.common
 
 class Max extends Serializable {
 

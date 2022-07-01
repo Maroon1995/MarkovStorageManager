@@ -1,12 +1,9 @@
-package com.boke.soft.app
+package com.boke.soft.dsj.app
 
-import com.boke.soft.bean.MaterialQuantityInfo
-import com.boke.soft.common.ProduceStatus._
-import com.boke.soft.common.{Max, ProduceStatus}
+import com.boke.soft.dsj.bean.MaterialQuantityInfo
+import com.boke.soft.dsj.common.{Max, ProduceStatus}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-
-
 
 object StorageManagerAPP {
 
@@ -17,7 +14,7 @@ object StorageManagerAPP {
     sc.setCheckpointDir("H:\\Project\\scalaworkspace\\StorageManagerSystem\\StorageManager\\src\\main\\checkpoint")
     // 读取数据
     val material_quantity: RDD[String] = sc.textFile("D:\\localdata\\material_transaction.csv").repartition(2)
-    // 数据解析封装MaterialQuantityInfo
+    // 数据解析并封装成 MaterialQuantityInfo
     val MaterialQuantityRDD: RDD[(String,MaterialQuantityInfo)] = material_quantity.map {
       line => {
         val arrs: Array[String] = line.split(",")
@@ -33,10 +30,8 @@ object StorageManagerAPP {
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList
         val valueGroupIter: Iterator[(String, List[MaterialQuantityInfo])] = valueGroupList.map {
           case (key, iter) =>
-//            val infoes: List[MaterialQuantityInfo] = iter.toList.sortWith(_.quantity < _.quantity)
             val infoes: List[MaterialQuantityInfo] = iter.toList
             val maxQuantity = max.getMaxListFloat(infoes.map(_.quantity)) // 计算历史出库最大值
-
             val quantityInfoes = infoes.map { // 计算出库量所属状态
               mqi => {
                 val value = mqi.quantity
@@ -49,6 +44,7 @@ object StorageManagerAPP {
         valueGroupIter
       }
     }
+    // 保存数据到数据库
 
     valueStatus.foreach(println)
     // 关闭资源

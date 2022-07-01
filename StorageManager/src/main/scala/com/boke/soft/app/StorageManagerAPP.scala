@@ -32,7 +32,7 @@ object StorageManagerAPP {
         val max = new Max()
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList
         val valueGroupIter: Iterator[(String, List[MaterialQuantityInfo])] = valueGroupList.map {
-          case (key, iter) => 
+          case (key, iter) =>
 //            val infoes: List[MaterialQuantityInfo] = iter.toList.sortWith(_.quantity < _.quantity)
             val infoes: List[MaterialQuantityInfo] = iter.toList
             val maxQuantity = max.getMaxListFloat(infoes.map(_.quantity)) // 计算历史出库最大值

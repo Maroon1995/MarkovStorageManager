@@ -30,9 +30,4 @@ object ProduceStatus {
     }
     status
   }
-
-  def main(args: Array[String]): Unit = {
-
-    println(GetStatus(1000.1.toFloat, 1000))
-  }
 }

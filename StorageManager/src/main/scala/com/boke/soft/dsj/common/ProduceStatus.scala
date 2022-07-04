@@ -1,11 +1,19 @@
 package com.boke.soft.dsj.common
 
-object ProduceStatus {
+import scala.collection.mutable.ArrayBuffer
 
-  def GetStatus(maxValues: Double, value: Double): String = {
+
+object ProduceStatus {
+  /**
+   * 获取颗粒度，表示有多少种状态
+   *
+   * @param maxValues 最大值
+   * @param value     要映射状态的数值
+   * @return 返回多少状态数量
+   */
+  def GetGraininess(maxValues: Double): (Int, Int) = {
     val maxV = math.ceil(maxValues).toInt //向上取整
     var intervalValue = 0 // 间隔值
-    var status: String = null
     // 根据最大值maxV的取值范围，设置数据间隔intervalValue的取值
     if (maxV <= 1200) {
       intervalValue = 10
@@ -16,9 +24,24 @@ object ProduceStatus {
     } else {
       intervalValue = 10000
     }
-    val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
     val statusNumber = math.round((maxV / intervalValue).toFloat) // 状态个数
-    val wheelNumber = math.ceil(statusNumber / 26).toInt // 循环baseStatus多少论
+    (intervalValue, statusNumber)
+  }
+
+  /**
+   * 根据当前物料历史上出库的最大值，为当前出库值映射出库状态
+   *
+   * @param maxValues
+   * @param value
+   * @return
+   */
+  def GetStatus(maxValues: Double, value: Double): String = {
+    var status: String = null
+    val tuple = GetGraininess(maxValues)
+    val intervalValue = tuple._1 // 状态步长
+    val statusNumber = tuple._2 // 状态个数
+    val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
+    val wheelNumber = math.ceil(statusNumber / 26).toInt // 循环baseStatus多少轮
     for (i <- 0 to statusNumber) {
       if (value >= i * intervalValue && value < (i + 1) * intervalValue) {
         for (j <- 0 to wheelNumber) {
@@ -30,4 +53,27 @@ object ProduceStatus {
     }
     status
   }
+
+  def GetTotalStatusList(maxValues: Double): Array[String] = {
+    val tuple = GetGraininess(maxValues)
+    val statusNumber = tuple._2 // 状态个数
+    val statusArr = new ArrayBuffer[String]()
+    val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
+    val wheelNumber = math.ceil(statusNumber / 26).toInt // 循环baseStatus多少轮
+    for (i <- 0 to statusNumber) {
+      for (j <- 0 to wheelNumber) {
+        if (i >= j * 26 && i < (j + 1) * 26) {
+          val bs = baseStatus(i - j * 26) * (j + 1)
+          statusArr.append(bs)
+        }
+      }
+    }
+    statusArr.toArray
+  }
+
+  def main(args: Array[String]): Unit = {
+    val strings = GetTotalStatusList(1100)
+    println(strings.mkString("Array(", ", ", ")"))
+  }
+
 }

@@ -31,28 +31,26 @@ object JDBCUtil {
   }
 
   // 执行sql:单条数据插入
+  /*
+  executeUpdate与execute的区别：
+  1、用于执行 INSERT、UPDATE 或 DELETE 语句以及 SQL DDL（数据定义语言）语句，
+  例如 CREATE TABLE 和 DROP TABLE。INSERT、UPDATE 或 DELETE 语句的效果是修改表
+  中零行或多行中的一列或多列。executeUpdate 的返回值是一个整数（int），指示受影响的行数
+  （即更新计数）。对于 CREATE TABLE 或 DROP TABLE 等不操作行的语句，executeUpdate 的返回值总为零。
+  2、可用于执行任何SQL语句，返回一个boolean值，表明执行该SQL语句是否返回了ResultSet。
+  但它执行SQL语句时比较麻烦，通常我们没有必要使用execute方法来执行SQL语句，而是使用executeQuery或executeUpdate更适合
+ */
   def executeUpdateOne(connection: Connection, sql: String, params: Array[Any]): Int = {
     var rtn = 0
     var pstmt: PreparedStatement = null
     try {
       connection.setAutoCommit(false) // 不自动提交，保证数据的完整性和干净性（如果中间提交内容错误或不对将不会提交到数据库中）
       pstmt = connection.prepareStatement(sql)
-
       if (params != null && params.length > 0) {
         for (i <- params.indices) {
           pstmt.setObject((i + 1), params(i)) // 向sql中设置（添加）参数
         }
       }
-
-      /*
-      executeUpdate与execute的区别：
-      1、用于执行 INSERT、UPDATE 或 DELETE 语句以及 SQL DDL（数据定义语言）语句，
-      例如 CREATE TABLE 和 DROP TABLE。INSERT、UPDATE 或 DELETE 语句的效果是修改表
-      中零行或多行中的一列或多列。executeUpdate 的返回值是一个整数（int），指示受影响的行数
-      （即更新计数）。对于 CREATE TABLE 或 DROP TABLE 等不操作行的语句，executeUpdate 的返回值总为零。
-      2、可用于执行任何SQL语句，返回一个boolean值，表明执行该SQL语句是否返回了ResultSet。
-      但它执行SQL语句时比较麻烦，通常我们没有必要使用execute方法来执行SQL语句，而是使用executeQuery或executeUpdate更适合
-       */
       rtn = pstmt.executeUpdate()
       connection.commit() // 提交任务
       pstmt.close() // 释放资源

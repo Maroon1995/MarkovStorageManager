@@ -59,6 +59,12 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.62</version>
         </dependency>
+        <!--joda处理日期使用的依赖-->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9.4</version>
+        </dependency>
     </dependencies>
     <!--scala 代码编译与打包依赖-->
     <build>

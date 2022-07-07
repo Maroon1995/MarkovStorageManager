@@ -51,6 +51,7 @@ object ReadDBMaxwellSplitFlowAPP {
               // -----------------------------------------------------------
               // 获取更新的表名称
               val tableName: String = jsonObject.getString("table")
+              println(dataJsonObj.toString)
               // 拼接发送的主题
               val sendTopic = "storage_manager_" + tableName
               MyKafkaSink.send(sendTopic, dataJsonObj.toString)

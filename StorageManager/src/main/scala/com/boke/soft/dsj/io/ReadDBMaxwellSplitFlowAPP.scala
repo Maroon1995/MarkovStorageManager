@@ -4,7 +4,7 @@ import com.alibaba.fastjson.{JSON, JSONObject}
 import com.boke.soft.dsj.common.MonitorStopSpark
 import com.boke.soft.dsj.process.CreateStreamingContext.GetSSC
 import com.boke.soft.dsj.stream.KafkaStream.{GetKafkaDStream, GetNewOffsetRanges}
-import com.boke.soft.dsj.util.{MyKafkaSink, MyKafkaUtil, OffsetManagerUtil}
+import com.boke.soft.dsj.util.{MyKafkaSink, OffsetManagerUtil}
 import org.apache.commons.lang.time.FastDateFormat
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}

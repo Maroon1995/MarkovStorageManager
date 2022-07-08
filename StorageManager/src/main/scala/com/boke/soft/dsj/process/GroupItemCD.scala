@@ -1,6 +1,9 @@
 package com.boke.soft.dsj.process
 
+import com.alibaba.fastjson.JSONObject
 import com.boke.soft.dsj.bean.MaterialQuantityInfo
+import com.boke.soft.dsj.util.DateUtil.getDateMonths
+import com.boke.soft.dsj.util.PhoenixUtil
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
@@ -8,11 +11,24 @@ object GroupItemCD {
 
   /**
    * 获取根据item_cd分组
-   * @param sc: spark的运行时环境和上下文对象
+   *
+   * @param sc : spark的运行时环境和上下文对象
    * @return
    */
   def GetGroups(sc: SparkContext): RDD[(String, Iterable[MaterialQuantityInfo])] = {
-    // 读取数据：DB数库中读取
+    // 读取数据：HBase数库中读取
+    val historyTime = getDateMonths(24, "yyyy/MM")
+    val currentTime = getDateMonths(0, "yyyy/MM")
+    val sql =
+      s"""
+         |select "item_cd", "item_desc","insert_datetime","quantity"
+         |from "ORIGINAL_DATA"
+         |where "insert_datetime" >= ${historyTime}
+         |and "insert_datetime" <= ${currentTime}
+         |""".stripMargin
+    val objects: List[JSONObject] = PhoenixUtil.queryList(sql)
+
+
     val material_quantity: RDD[String] = sc.textFile("D:\\localdata\\material_transaction.csv").repartition(2)
     // 数据解析并封装成 MaterialQuantityInfo
     val MaterialQuantityRDD: RDD[(String, MaterialQuantityInfo)] = material_quantity.map {

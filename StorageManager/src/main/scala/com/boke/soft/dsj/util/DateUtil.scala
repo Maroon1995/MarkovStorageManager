@@ -1,8 +1,10 @@
 package com.boke.soft.dsj.util
 
 import java.util.Date
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, Months}
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+
+import scala.collection.mutable.ListBuffer
 
 /**
  * 日期时间工具类
@@ -23,7 +25,7 @@ object DateUtil {
    * @return 昨天的日期
    */
   def getYesterdayDate: String = {
-    DateTime.now() .minusDays(1).toString(DATE_FORMAT)
+    DateTime.now().minusDays(1).toString(DATE_FORMAT)
   }
 
   /**
@@ -37,18 +39,30 @@ object DateUtil {
 
   /**
    * 获取距当天 N 天时的日期 格式: yyyy-MM-dd
+   *
    * @param n : 当天为 0，前一天为 1, 后一天为 -1
    * @return yyyy-MM-dd
    */
-  def getDate(n: Int): String = {
+  def getDateDays(n: Int): String = {
     DateTime.now().minusDays(n).toString(DATE_FORMAT)
+  }
+
+  /**
+   * 获取距当月 N 月时的日期 格式: format
+   *
+   * @param n      : 当月为 0，前一月为 1, 后一月为 -1
+   * @param format : 日期格式 "yyyy/MM"
+   * @return
+   */
+  def getDateMonths(n: Int, format: String): String = {
+    DateTime.now().minusMonths(n).toString(format)
   }
 
   /**
    * 获取日期时间 格式: yyyy-MM-dd
    *
    * @param yesterday : 需要计算的日期
-   * @param n : 当天为 0，前一天为 1, 后一天为 -1
+   * @param n         : 当天为 0，前一天为 1, 后一天为 -1
    * @return yyyy-MM-dd
    */
   def getOneDate(yesterday: String, n: Int): String = {
@@ -142,8 +156,8 @@ object DateUtil {
   /**
    * 时间戳转指定格式time, 格式: 自定义
    *
-   * @param timestamp: 时间戳, Long, 13 位
-   * @param pattern: 格式化格式,如: yyyy-MM-dd
+   * @param timestamp : 时间戳, Long, 13 位
+   * @param pattern   : 格式化格式,如: yyyy-MM-dd
    * @return 自定义
    */
   def timestampToTime(timestamp: Long, pattern: String): String = {
@@ -153,7 +167,7 @@ object DateUtil {
   /**
    * 通过时间戳获取小时, 格式: HH
    *
-   * @param timestamp: 时间戳, Long, 13 位
+   * @param timestamp : 时间戳, Long, 13 位
    * @return 小时, Int
    */
   def getHour(timestamp: Long): Int = {
@@ -163,7 +177,7 @@ object DateUtil {
   /**
    * 通过时间戳获取分钟, 格式: mm
    *
-   * @param timestamp: 时间戳, Long, 13 位
+   * @param timestamp : 时间戳, Long, 13 位
    * @return 分钟, Int
    */
   def getMinute(timestamp: Long): Int = {
@@ -173,7 +187,7 @@ object DateUtil {
   /**
    * 通过时间戳获取秒, 格式: ss
    *
-   * @param timestamp: 时间戳, Long, 13 位
+   * @param timestamp : 时间戳, Long, 13 位
    * @return 秒, Int
    */
   def getSecond(timestamp: Long): Int = {
@@ -190,8 +204,41 @@ object DateUtil {
     TIME_FORMAT.parseDateTime(date).toString("yyyy/MM")
   }
 
+  /**
+   * 计算两个日期的差值
+   *
+   * @param dateTime1 :字符串日期1
+   * @param dateTime2 :字符串日期2
+   * @return 返回相差的月数
+   */
+  def getMonthDifferent(dateTime1: DateTime, dateTime2: DateTime): Int = {
+    Months.monthsBetween(dateTime1, dateTime2).getMonths
+  }
+
+  /**
+   * 计算两个日期的差值
+   *
+   * @param dateTime1 :字符串小日期1
+   * @param dateTime2 :字符串大日期2
+   * @param format    : 输入字符串日期的解析格式
+   * @return 返回相差的月数
+   */
+  def getMonthDifferent(dateTime1: String, dateTime2: String, format: String): Int = {
+    val formatter = DateTimeFormat.forPattern(format)
+    val date1 = formatter.parseDateTime(dateTime1)
+    val date2 = formatter.parseDateTime(dateTime2)
+    Months.monthsBetween(date1, date2).getMonths
+  }
+
   def main(args: Array[String]): Unit = {
-    val date = "2018-9-27 9:07:51"
-    println(formatDateToMonth(date))
+    val date1 = "2018/9"
+    val date2 = "2017/9"
+    //    println(getDateMonths(2, "yyyy/MM"))
+    val diffMonthsNumber = getMonthDifferent(date2, date1, "yyyy/MM")
+    val dateList: ListBuffer[String] = ListBuffer[String]()
+    for (i <- 0 to diffMonthsNumber) {
+      dateList.append(getDateMonths(i,"yyyy/MM"))
+    }
+    dateList
   }
 }

@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.kafka010.{HasOffsetRanges, OffsetRange}
 
-object DataDealAPP {
+object DataDealStreamAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象

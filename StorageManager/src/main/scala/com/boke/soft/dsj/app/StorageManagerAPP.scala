@@ -3,7 +3,8 @@ package com.boke.soft.dsj.app
 import com.boke.soft.dsj.bean.{MaterialQuantityInfo, StatusMatrix}
 import com.boke.soft.dsj.common.SetOperations.Cartesian
 import com.boke.soft.dsj.common.{Max, ProduceStatus}
-import com.boke.soft.dsj.process.{CreateSparkContext, GroupItemCD}
+import com.boke.soft.dsj.process.{CreateDateTimeList, CreateSparkContext, GroupItemCD}
+import com.boke.soft.dsj.util.DateUtil.getDateMonths
 import org.apache.spark.rdd.RDD
 
 import scala.collection.mutable
@@ -14,10 +15,38 @@ object StorageManagerAPP {
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
     val sc = CreateSparkContext.GetSC
-    // 分组
+    // 聚合与分组
     val valueGroup: RDD[(String, Iterable[MaterialQuantityInfo])] = GroupItemCD.GetGroups(sc)
+    val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = valueGroup.mapPartitions {
+      mapIter => {
+        val mapList = mapIter.toList
+        val historyTime = getDateMonths(48, "yyyy/MM")
+        val currentTime = getDateMonths(0, "yyyy/MM")
+        val dateStringList: List[String] = CreateDateTimeList.DateMonthList(historyTime, currentTime)
+        val mapper = mapList.map {
+          case (item, mqiIter) =>
+            val mqiListBuffer = ListBuffer[MaterialQuantityInfo]()
+            val mqiList = mqiIter.toList
+            val mqiinit = mqiList.head
+            mqiinit.quantity = 0
+            for (dateString <- dateStringList) {
+              for (mqi <- mqiList) {
+                if (dateString.equals(mqi.insert_datetime)) {
+                  mqiListBuffer.append(mqi)
+                } else {
+                  mqiinit.insert_datetime = dateString
+                  mqiListBuffer.append(mqi)
+                }
+              }
+            }
+            (item, mqiListBuffer.toList.toIterable)
+        }
+        mapper.toIterator
+      }
+    }
+
     // 统计每种物料的出库最大值和出库状态的颗粒度(item_cd,maxQuantity,graininess)
-    val itemStatusGrainRDD: RDD[((String, String, String), Int)] = valueGroup.mapPartitions {
+    val itemStatusGrainRDD: RDD[((String, String, String), Int)] = MaterialQuantityGroups.mapPartitions {
       iter => {
         val max = new Max()
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList
@@ -33,7 +62,7 @@ object StorageManagerAPP {
       }
     }
 
-    val itemStatusGrainTwoRDD = valueGroup.mapPartitions {
+    val itemStatusGrainTwoRDD = MaterialQuantityGroups.mapPartitions {
       iter => {
         val max = new Max()
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList
@@ -52,7 +81,7 @@ object StorageManagerAPP {
     /* --------------------------------------------------------------------------------------------
     根据分组计算物料出库量所属出库状态
      */
-    val valueStatus: RDD[(String, Iterator[MaterialQuantityInfo])] = valueGroup.mapPartitions {
+    val valueStatus: RDD[(String, Iterator[MaterialQuantityInfo])] = MaterialQuantityGroups.mapPartitions {
       iter => {
         val max = new Max()
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList

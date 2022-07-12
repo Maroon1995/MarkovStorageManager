@@ -1,9 +1,9 @@
-package com.boke.soft.dsj.io
+package com.boke.soft.dsj.stream
 
 import com.alibaba.fastjson.{JSON, JSONObject}
 import com.boke.soft.dsj.common.MonitorStopSpark
 import com.boke.soft.dsj.process.CreateStreamingContext.GetSSC
-import com.boke.soft.dsj.stream.KafkaStream.{GetKafkaDStream, GetNewOffsetRanges}
+import com.boke.soft.dsj.stream.KafkaStream.GetKafkaDStream
 import com.boke.soft.dsj.util.{MyKafkaSink, OffsetManagerUtil}
 import org.apache.commons.lang.time.FastDateFormat
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -12,7 +12,7 @@ import org.apache.spark.streaming.kafka010.{HasOffsetRanges, OffsetRange}
 
 import java.util.Date
 
-object ReadDBMaxwellSplitFlowAPP {
+object ReadDBMaxwellStreamAPP {
 
   def main(args: Array[String]): Unit = {
     // TODO 1 创建环境
@@ -22,9 +22,6 @@ object ReadDBMaxwellSplitFlowAPP {
     val groupID = "storage_manager_topics"
     val kafkaDStream: InputDStream[ConsumerRecord[String, String]] = GetKafkaDStream(ssc, topic, groupID)
     // TODO 3 获取当前批次读取kafka主题中偏移量信息
-//    val tuple: (DStream[ConsumerRecord[String, String]], Array[OffsetRange]) = GetNewOffsetRanges(kafkaDStream)
-//    val offsetKafkaDStream = tuple._1
-//    val offsetRanges:Array[OffsetRange] = tuple._2
     var offsetRanges = Array.empty[OffsetRange]
     val offsetKafkaDStream: DStream[ConsumerRecord[String, String]] = kafkaDStream.transform {
       rdd =>

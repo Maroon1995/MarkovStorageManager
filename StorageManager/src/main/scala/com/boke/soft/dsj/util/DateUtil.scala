@@ -230,15 +230,4 @@ object DateUtil {
     Months.monthsBetween(date1, date2).getMonths
   }
 
-  def main(args: Array[String]): Unit = {
-    val date1 = "2018/9"
-    val date2 = "2017/9"
-    //    println(getDateMonths(2, "yyyy/MM"))
-    val diffMonthsNumber = getMonthDifferent(date2, date1, "yyyy/MM")
-    val dateList: ListBuffer[String] = ListBuffer[String]()
-    for (i <- 0 to diffMonthsNumber) {
-      dateList.append(getDateMonths(i,"yyyy/MM"))
-    }
-    dateList
-  }
 }

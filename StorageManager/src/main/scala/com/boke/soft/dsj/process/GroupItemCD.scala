@@ -1,5 +1,6 @@
 package com.boke.soft.dsj.process
 
+import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONObject
 import com.boke.soft.dsj.bean.MaterialQuantityInfo
 import com.boke.soft.dsj.util.DateUtil.getDateMonths
@@ -17,28 +18,37 @@ object GroupItemCD {
    */
   def GetGroups(sc: SparkContext): RDD[(String, Iterable[MaterialQuantityInfo])] = {
     // 读取数据：HBase数库中读取
-    val historyTime = getDateMonths(24, "yyyy/MM")
+    val historyTime = getDateMonths(48, "yyyy/MM")
     val currentTime = getDateMonths(0, "yyyy/MM")
     val sql =
       s"""
          |select "item_cd", "item_desc","insert_datetime","quantity"
          |from "ORIGINAL_DATA"
-         |where "insert_datetime" >= ${historyTime}
-         |and "insert_datetime" <= ${currentTime}
+         |where "insert_datetime" >= '${historyTime}'
+         |and "insert_datetime" <= '${currentTime}'
          |""".stripMargin
-    val objects: List[JSONObject] = PhoenixUtil.queryList(sql)
+    val jsonObjects: List[JSONObject] = PhoenixUtil.queryList(sql)
 
-
-    val material_quantity: RDD[String] = sc.textFile("D:\\localdata\\material_transaction.csv").repartition(2)
+    val jsonObjectsRDD: RDD[JSONObject] = sc.makeRDD(jsonObjects).repartition(2).cache()
     // 数据解析并封装成 MaterialQuantityInfo
-    val MaterialQuantityRDD: RDD[(String, MaterialQuantityInfo)] = material_quantity.map {
-      line => {
-        val arrs: Array[String] = line.split(",")
-        (arrs(0), MaterialQuantityInfo(arrs(0), arrs(1), arrs(2), arrs(3).toDouble))
-      }
+    val MaterialQuantityRDD: RDD[MaterialQuantityInfo] = jsonObjectsRDD.map(
+      jsonObject => JSON.parseObject(jsonObject.toJSONString, classOf[MaterialQuantityInfo])
+    )
+    val MaterialQuantityMap: RDD[((String, String, String), Double)] = MaterialQuantityRDD.mapPartitions {
+      mqiIter =>
+        val mqiList = mqiIter.toList
+        val tuples: List[((String, String, String), Double)] = mqiList.map {
+          mqi => ((mqi.item_cd, mqi.item_desc, mqi.insert_datetime), mqi.quantity)
+        }
+        tuples.toIterator
     }
-    // 数据分组计算出库量态
-    val valueGroup: RDD[(String, Iterable[MaterialQuantityInfo])] = MaterialQuantityRDD.groupByKey() // 分组
-    valueGroup
+    // 数据聚合分组计算
+    val MaterialQuantityReduce = MaterialQuantityMap.reduceByKey(_ + _) // 聚合
+    val MaterialQuantityReduceMap: RDD[(String, MaterialQuantityInfo)] = MaterialQuantityReduce.map {
+      case ((item_cd, item_desc, datetime), quantity) =>
+        (item_cd, MaterialQuantityInfo(item_cd, item_desc, datetime, quantity))
+    }
+    val MaterialQuantityGroup: RDD[(String, Iterable[MaterialQuantityInfo])] = MaterialQuantityReduceMap.groupByKey() //分组
+    MaterialQuantityGroup
   }
 }

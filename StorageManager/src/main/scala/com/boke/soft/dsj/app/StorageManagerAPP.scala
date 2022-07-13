@@ -17,29 +17,38 @@ object StorageManagerAPP {
     val sc = CreateSparkContext.GetSC
     // 聚合与分组
     val valueGroup: RDD[(String, Iterable[MaterialQuantityInfo])] = GroupItemCD.GetGroups(sc)
+
     val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = valueGroup.mapPartitions {
       mapIter => {
         val mapList = mapIter.toList
-        val historyTime = getDateMonths(67, "yyyy/MM")
+        val historyTime = getDateMonths(66, "yyyy/MM")
         val currentTime = getDateMonths(0, "yyyy/MM")
         val dateStringList: List[String] = CreateDateTimeList.DateMonthList(historyTime, currentTime)
         val mapper = mapList.map {
           case (item, mqiIter) =>
-            val mqiListBuffer = ListBuffer[MaterialQuantityInfo]()
             val mqiList = mqiIter.toList
+            val mqiIterMap: List[mutable.Map[String, MaterialQuantityInfo]] = mqiList.map(
+              mqi => {
+                val stringToInfo = mutable.Map[String, MaterialQuantityInfo]()
+                stringToInfo.put(mqi.insert_datetime, mqi)
+                stringToInfo
+              }
+            )
+            val mqiDateList = mqiList.map(_.insert_datetime) // 获取时间列表
             val mqiinit = mqiList.head
             mqiinit.quantity = 0
-            for (dateString <- dateStringList) {
-              for (mqi <- mqiList) {
-                if (dateString.equals(mqi.insert_datetime)) {
-                  mqiListBuffer.append(mqi)
+            val infoes: List[MaterialQuantityInfo] = dateStringList.map(
+              dateTime => {
+                if (mqiDateList.contains(dateTime)) {
+                  val head = mqiIterMap.flatMap(_.get(dateTime)).head
+                  head
                 } else {
-                  mqiinit.insert_datetime = dateString
-                  mqiListBuffer.append(mqi)
+                  mqiinit.insert_datetime = dateTime
+                  mqiinit
                 }
               }
-            }
-            (item, mqiListBuffer.toList.toIterable)
+            )
+            (item, infoes)
         }
         mapper.toIterator
       }
@@ -143,10 +152,11 @@ object StorageManagerAPP {
     //      case ((item, status1, status2), count) => println(item + " " + status1 + " " + status2 + " " + count)
     //    }
     MaterialQuantityGroups.foreach {
-      case (item, iter) =>
-        for (mqi <- iter.toList) {
+      case (item, mqiIterable) => {
+        for (mqi <- mqiIterable) {
           println(item + ": " + mqi.toString)
         }
+      }
     }
     // 关闭资源
     sc.stop()

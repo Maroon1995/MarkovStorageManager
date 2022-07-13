@@ -18,7 +18,7 @@ object GroupItemCD {
    */
   def GetGroups(sc: SparkContext): RDD[(String, Iterable[MaterialQuantityInfo])] = {
     // 读取数据：HBase数库中读取
-    val historyTime = getDateMonths(67, "yyyy/MM")
+    val historyTime = getDateMonths(66, "yyyy/MM")
     val currentTime = getDateMonths(0, "yyyy/MM")
     val sql =
       s"""
@@ -29,7 +29,7 @@ object GroupItemCD {
          |""".stripMargin
     val jsonObjects: List[JSONObject] = PhoenixUtil.queryList(sql)
 
-    val jsonObjectsRDD: RDD[JSONObject] = sc.makeRDD(jsonObjects).repartition(2).cache()
+    val jsonObjectsRDD: RDD[JSONObject] = sc.makeRDD(jsonObjects.toSeq).repartition(2).cache()
     // 数据解析并封装成 MaterialQuantityInfo
     val MaterialQuantityRDD: RDD[MaterialQuantityInfo] = jsonObjectsRDD.map(
       jsonObject => JSON.parseObject(jsonObject.toJSONString, classOf[MaterialQuantityInfo])

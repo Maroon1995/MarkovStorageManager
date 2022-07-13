@@ -18,7 +18,7 @@ object GroupItemCD {
    */
   def GetGroups(sc: SparkContext): RDD[(String, Iterable[MaterialQuantityInfo])] = {
     // 读取数据：HBase数库中读取
-    val historyTime = getDateMonths(48, "yyyy/MM")
+    val historyTime = getDateMonths(67, "yyyy/MM")
     val currentTime = getDateMonths(0, "yyyy/MM")
     val sql =
       s"""

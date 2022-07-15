@@ -9,7 +9,7 @@ object CreateStreamingContext {
    * 创建sparkstreamin的运行环境和上下文环境对象
    * @return
    */
-  def GetSSC(appName:String): StreamingContext ={
+  def getSSC(appName:String): StreamingContext ={
     val conf = new SparkConf().setMaster("local[4]").setAppName(appName)
     val ssc = new StreamingContext(conf, Seconds(4))
     ssc.checkpoint("H:\\Project\\scalaworkspace\\StorageManagerSystem\\StorageManager\\src\\main\\checkpoint")

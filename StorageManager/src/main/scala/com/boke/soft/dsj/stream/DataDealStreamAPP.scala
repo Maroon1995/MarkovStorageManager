@@ -2,7 +2,7 @@ package com.boke.soft.dsj.stream
 
 import com.alibaba.fastjson.JSON
 import com.boke.soft.dsj.bean.OriginalData
-import com.boke.soft.dsj.process.CreateStreamingContext.GetSSC
+import com.boke.soft.dsj.process.CreateStreamingContext.getSSC
 import com.boke.soft.dsj.stream.KafkaStream.GetKafkaDStream
 import com.boke.soft.dsj.util.{DateUtil, OffsetManagerUtil}
 import org.apache.hadoop.conf.Configuration
@@ -14,7 +14,7 @@ object DataDealStreamAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
-    val ssc = GetSSC("datadeal")
+    val ssc = getSSC("datadeal")
     // 主题名称，消费者组名称
     val topicName = "storage_manager_material_quantity"
     val groupId = "storage_manager_topics_mq"
@@ -26,7 +26,7 @@ object DataDealStreamAPP {
         offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
         rdd
     }
-    // 处理获取到数据,并重新封装成OriginalData对象
+    // 处理获取到数据,并重新封装成originalData对象
     val kafkaDStreamOriginalData: DStream[OriginalData] = kafkaDStreamOffset.map(
       recodes => {
         JSON.parseObject(recodes.value(), classOf[OriginalData])

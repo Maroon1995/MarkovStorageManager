@@ -11,10 +11,9 @@ object CreateDateTimeList {
    * 获取间隔时间为月的日期列表
    * @param startDate: 开始日期
    * @param endDate： 结束日期
-   * @param format "yyyy/MM"
    * @return 返回日期列表，将时间为月
    */
-  def DateMonthList(startDate: String, endDate: String): List[String] = {
+  def dateMonthList(startDate: String, endDate: String): List[String] = {
     val diffMonthsNumber = getMonthDifferent(startDate, endDate, "yyyy/MM") // 计算日期差值
     val dateList: ListBuffer[String] = ListBuffer[String]()
     for (i <- 0 to diffMonthsNumber) {
@@ -27,10 +26,9 @@ object CreateDateTimeList {
    * 获取间隔时间为月的日期列表
    * @param startDate: 开始日期
    * @param endDate： 结束日期
-   * @param format "yyyy/MM"
    * @return 返回日期列表，将时间为月
    */
-  def DateMonthList(startDate: DateTime, endDate: DateTime): List[String] ={
+  def dateMonthList(startDate: DateTime, endDate: DateTime): List[String] ={
     val diffMonthsNumber = getMonthDifferent(endDate, startDate) // 计算日期差值
     val dateList: ListBuffer[String] = ListBuffer[String]()
     for (i <- 0 to diffMonthsNumber) {
@@ -38,13 +36,4 @@ object CreateDateTimeList {
     }
     dateList.toList
   }
-
-  def main(args: Array[String]): Unit = {
-    val historyTime = getDateMonths(66, "yyyy/MM")
-    val currentTime = getDateMonths(0, "yyyy/MM")
-    val dateStringList: List[String] = CreateDateTimeList.DateMonthList(historyTime, currentTime)
-//    val diffMonthsNumber = getMonthDifferent(currentTime, historyTime, "yyyy/MM")
-    println(dateStringList)
-  }
-
 }

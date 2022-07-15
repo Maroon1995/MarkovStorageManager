@@ -2,7 +2,7 @@ package com.boke.soft.dsj.stream
 
 import com.alibaba.fastjson.{JSON, JSONObject}
 import com.boke.soft.dsj.common.MonitorStopSpark
-import com.boke.soft.dsj.process.CreateStreamingContext.GetSSC
+import com.boke.soft.dsj.process.CreateStreamingContext.getSSC
 import com.boke.soft.dsj.stream.KafkaStream.GetKafkaDStream
 import com.boke.soft.dsj.util.{MyKafkaSink, OffsetManagerUtil}
 import org.apache.commons.lang.time.FastDateFormat
@@ -16,7 +16,7 @@ object ReadDBMaxwellStreamAPP {
 
   def main(args: Array[String]): Unit = {
     // TODO 1 创建环境
-    val ssc = GetSSC("MaxwellSplitFlow")
+    val ssc = getSSC("MaxwellSplitFlow")
     // TODO 2 从kafka中读取数据流
     val topic = "storage_material_quantity"
     val groupID = "storage_manager_topics"

@@ -8,10 +8,10 @@ object ProduceStatus {
    * 获取颗粒度，表示有多少种状态
    *
    * @param maxValues 最大值
-   * @param value     要映射状态的数值
+   * @param value: 要映射状态的数值
    * @return 返回多少状态数量
    */
-  def GetGraininess(maxValues: Double): (Int, Int) = {
+  def getGraininess(maxValues: Double): (Int, Int) = {
     val maxV = math.ceil(maxValues).toInt //向上取整
     var intervalValue = 0 // 间隔值
     // 根据最大值maxV的取值范围，设置数据间隔intervalValue的取值
@@ -35,9 +35,9 @@ object ProduceStatus {
    * @param value
    * @return
    */
-  def GetStatus(maxValues: Double, value: Double): String = {
+  def getStatus(maxValues: Double, value: Double): String = {
     var status: String = null
-    val tuple = GetGraininess(maxValues)
+    val tuple = getGraininess(maxValues)
     val intervalValue = tuple._1 // 状态步长
     val statusNumber = tuple._2 // 状态个数
     val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
@@ -54,8 +54,13 @@ object ProduceStatus {
     status
   }
 
-  def GetTotalStatusList(maxValues: Double): Array[String] = {
-    val tuple = GetGraininess(maxValues)
+  /**
+   * 获取出库状态列表
+   * @param maxValues ：最大出库值
+   * @return
+   */
+  def getTotalStatusList(maxValues: Double): Array[String] = {
+    val tuple = getGraininess(maxValues)
     val statusNumber = tuple._2 // 状态个数
     val statusArr = new ArrayBuffer[String]()
     val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
@@ -72,7 +77,7 @@ object ProduceStatus {
   }
 
   def main(args: Array[String]): Unit = {
-    val strings = GetTotalStatusList(1100)
+    val strings = getTotalStatusList(1100)
     println(strings.mkString("Array(", ", ", ")"))
   }
 

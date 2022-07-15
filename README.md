@@ -1,0 +1,2 @@
+# MarkovStorageManager
+马尔可夫模型在物料库存管理中的应用

@@ -16,7 +16,8 @@ object ByItemCDGroup {
    */
   def getGroups(sc: SparkContext): RDD[(String, Iterable[MaterialQuantityInfo])] = {
     // 读取数据：HBase数库中读取原始数据表ORIGINAL_DATA
-    val MaterialQuantityRDD: RDD[MaterialQuantityInfo] = Produce.MaterialQuantityRDD(sc)
+    val produce = new Produce(sc)
+    val MaterialQuantityRDD: RDD[MaterialQuantityInfo] = produce.materialQuantityRDD
     val MaterialQuantityMap: RDD[((String, String, String), Double)] = MaterialQuantityRDD.mapPartitions {
       mqiIter =>
         val mqiList = mqiIter.toList

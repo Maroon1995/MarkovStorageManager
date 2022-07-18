@@ -10,17 +10,23 @@ object PhoenixUtil {
   var ps: PreparedStatement = _
   var resultSet: ResultSet = _
 
+  private def connection: Connection ={
 
-  /**
-   * 将Hbase中查询的结果返回成ResultSet
-   */
-  def queryToResultSet(sql: String): ResultSet = {
     // 加载配置文件参数
     val properties = PropertiesUtil.load("jdbc.properties")
     // 驱动类phoenixDriver
     Class.forName(properties.getProperty("phDriver"))
     // 获取连接配置
     conn = DriverManager.getConnection(properties.getProperty("phUrl"))
+    conn
+  }
+
+  /**
+   * 将Hbase中查询的结果返回成ResultSet
+   */
+  def queryToResultSet(sql: String): ResultSet = {
+    // 获取连接配置
+    conn = connection
     // 创建数据库操作对象
     ps = conn.prepareStatement(sql)
     // 执行sql语句
@@ -33,12 +39,8 @@ object PhoenixUtil {
   将Hbase中查询的结果返回成json对象串列表
    */
   def queryToJSONObjectList(sql: String): List[JSONObject] = {
-    // 加载配置文件参数
-    val properties = PropertiesUtil.load("jdbc.properties")
-    // 驱动类phoenixDriver
-    Class.forName(properties.getProperty("phDriver"))
     // 获取连接配置
-    conn = DriverManager.getConnection(properties.getProperty("phUrl"))
+    conn = connection
     // 创建数据库操作对象
     ps = conn.prepareStatement(sql)
     // 执行sql语句

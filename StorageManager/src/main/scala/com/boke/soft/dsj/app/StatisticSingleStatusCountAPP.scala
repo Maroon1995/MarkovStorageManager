@@ -12,8 +12,9 @@ object StatisticSingleStatusCountAPP {
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
     val sc = CreateSparkContext.getSC
+    val produce = new Produce(sc)
     // 聚合与分组
-    val MaterialQuantityStatus: RDD[MaterialQuantityInfo] = Produce.MaterialQuantityStatusRDD(sc) // 获取物料的出库量和状态数据
+    val MaterialQuantityStatus: RDD[MaterialQuantityInfo] = produce.materialQuantityStatusRDD // 获取物料的出库量和状态数据
     val MaterialQuantityStatusMap: RDD[(String, MaterialQuantityInfo)] = MaterialQuantityStatus.map(mqi => (mqi.item_cd, mqi))
     val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = MaterialQuantityStatusMap.groupByKey()
 

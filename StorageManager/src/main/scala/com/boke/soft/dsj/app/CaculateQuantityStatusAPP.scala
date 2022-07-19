@@ -1,7 +1,7 @@
 package com.boke.soft.dsj.app
 
 import com.boke.soft.dsj.bean.MaterialQuantityInfo
-import com.boke.soft.dsj.common.{Max, ProduceStatus}
+import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
 import com.boke.soft.dsj.process.{ByItemCDGroup, CreateSparkContext}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -16,12 +16,12 @@ object CaculateQuantityStatusAPP {
     // 根据分组计算物料出库量所属出库状态
     val quantityStatus = MaterialQuantityGroups.mapPartitions {
       iter => {
-        val max = new Max()
+        val math = new MyMath()
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList
         val valueGroupIter = valueGroupList.flatMap {
           case (key, iter) =>
             val infoes: List[MaterialQuantityInfo] = iter.toList
-            val maxQuantity = max.getMaxListFloat(infoes.map(_.quantity)) // 计算历史出库最大值
+            val maxQuantity = math.getMaxFromList[Double](infoes.map(_.quantity)) // 计算历史出库最大值
             val quantityInfoes = infoes.map { // 计算出库量所属状态
               mqi => {
                 val value = mqi.quantity

@@ -75,10 +75,4 @@ object ProduceStatus {
     }
     statusArr.toArray
   }
-
-  def main(args: Array[String]): Unit = {
-    val strings = getTotalStatusList(1100)
-    println(strings.mkString("Array(", ", ", ")"))
-  }
-
 }

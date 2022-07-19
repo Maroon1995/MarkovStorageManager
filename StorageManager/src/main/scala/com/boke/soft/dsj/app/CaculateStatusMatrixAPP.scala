@@ -1,11 +1,12 @@
 package com.boke.soft.dsj.app
 
-import com.boke.soft.dsj.bean.{DoubleStatusCount, SingleStatusCount, StatusMatrix}
-import com.boke.soft.dsj.process.CreateSparkContext
-import com.boke.soft.dsj.produce.Produce
 import org.apache.spark.rdd.RDD
+import com.boke.soft.dsj.common.MyMath
+import com.boke.soft.dsj.produce.Produce
+import org.apache.hadoop.conf.Configuration
+import com.boke.soft.dsj.process.CreateSparkContext
+import com.boke.soft.dsj.bean.{DoubleStatusCount, SingleStatusCount, StatusMatrix}
 
-import scala.collection.mutable
 
 object CaculateStatusMatrixAPP {
 
@@ -19,40 +20,46 @@ object CaculateStatusMatrixAPP {
     val singleStatusCount: RDD[SingleStatusCount] = produce.singleStatusCount.cache()
     val doubleStatusCount: RDD[DoubleStatusCount] = produce.doubleStatusCount.cache()
     // TODO 2 计算概率，并封装成状态概率矩阵：StatusMatrix
-    val singleStatusCountMapRDD: RDD[mutable.HashMap[String, (String, Double)]] = singleStatusCount.map {
+    // Mapper
+    val singleStatusCountMapRDD = singleStatusCount.map {
       ssc =>
-        val sscMap: mutable.HashMap[String, (String, Double)] = mutable.HashMap[String, (String, Double)]()
-        sscMap.put(ssc.item_cd, (ssc.status, ssc.count))
-        sscMap
+        ((ssc.item_cd, ssc.status), ("1", ssc.count))
     }
-
-    val doubleStatusCountMapRDD: RDD[mutable.HashMap[String, mutable.HashMap[String, (String, Double)]]] = doubleStatusCount.map {
+    val doubleStatusCountMapRDD = doubleStatusCount.map {
       dsc =>
-        val stringToTuple: mutable.HashMap[String, (String, Double)] = mutable.HashMap[String, (String, Double)]()
-        val dscMap: mutable.HashMap[String, mutable.HashMap[String, (String, Double)]] = mutable.HashMap[String, mutable.HashMap[String, (String, Double)]]()
-        stringToTuple.put(dsc.status_head, (dsc.status_tail, dsc.count))
-        dscMap.put(dsc.item_cd, stringToTuple)
-        dscMap
+        ((dsc.item_cd, dsc.status_head), (dsc.status_tail, dsc.count))
     }
-    doubleStatusCountMapRDD.map {
-      mapper => {
-        var matrix: StatusMatrix = null
-        singleStatusCount.foreach{
-          ssc => {
-            val tuple: (String, Double) = mapper(ssc.item_cd)(ssc.status)
-            if (tuple != null) {
-              matrix = StatusMatrix(ssc.item_cd, ssc.status, tuple._1, tuple._2 / ssc.count)
-            }
-          }
+    // Combine
+    val value = doubleStatusCountMapRDD.union(singleStatusCountMapRDD).cache()
+    // Group
+    val valueGroup = value.groupByKey()
+    val statusMatrixRDD: RDD[StatusMatrix] = valueGroup.mapPartitions(
+      tupleIter => {
+        val math = new MyMath()
+        val tupleList: List[((String, String), Iterable[(String, Double)])] = tupleIter.toList
+        val matrixesList: List[StatusMatrix] = tupleList.flatMap {
+          case (key, mapIter) =>
+            val mapList: List[(String, Double)] = mapIter.toList
+            val doubleStatus: List[(String, Double)] = mapList.filter(mapper => mapper._1 != "1")
+            val singleStatus: (String, Double) = mapList.filter(mapper => mapper._1 == "1").head
+            val matrixes: List[StatusMatrix] = doubleStatus.map(
+              mapper =>
+                StatusMatrix(key._1, key._2, mapper._1, math.round(mapper._2 / singleStatus._2, 3))
+            )
+            matrixes
         }
-        matrix
+        matrixesList.toIterator
       }
-    }
-
-
-    singleStatusCount.foreach(println)
-    doubleStatusCount.foreach(println)
-    // TODO 关闭环境
+    )
+    // TODO 3 将结果保存到hbase
+    import org.apache.phoenix.spark._
+    statusMatrixRDD.saveToPhoenix(
+      "STATUS_MATRIX",
+      Seq("item_cd","xAxis","yAxis","probability"),
+      new Configuration,
+      Some("master,centos-oracle,Maroon:2181")
+    )
+    // TODO 4 关闭环境
     sc.stop()
   }
 

@@ -1,7 +1,7 @@
 package com.boke.soft.dsj.app
 
 import com.boke.soft.dsj.bean.{MaterialQuantityInfo, SingleStatusCount}
-import com.boke.soft.dsj.common.{Max, ProduceStatus}
+import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
 import com.boke.soft.dsj.process.CreateSparkContext
 import com.boke.soft.dsj.produce.Produce
 import org.apache.hadoop.conf.Configuration
@@ -21,12 +21,13 @@ object StatisticSingleStatusCountAPP {
     // 统计每种物料的出库最大值和出库状态的颗粒度(item_cd,maxQuantity,graininess)
     val itemStatusGrainRDD: RDD[((String, String), Int)] = MaterialQuantityGroups.mapPartitions {
       iter => {
-        val max = new Max()
+
         val valueGroupList: List[(String, Iterable[MaterialQuantityInfo])] = iter.toList
         val valueGroupIter = valueGroupList.flatMap {
           case (item, iter) =>
             val infoes: List[MaterialQuantityInfo] = iter.toList
-            val maxQuantity = max.getMaxListFloat(infoes.map(_.quantity)) // 计算历史出库最大值
+            val math = new MyMath()
+            val maxQuantity = math.getMaxFromList[Double](infoes.map(_.quantity)) // 计算历史出库最大值
             val graininess = ProduceStatus.getGraininess(maxQuantity)._2 // 计算出库状态颗粒度
             val statusArr: List[String] = ProduceStatus.getTotalStatusList(maxQuantity).toList
             statusArr.map { ele => ((item, ele), graininess) }

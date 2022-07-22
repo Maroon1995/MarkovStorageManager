@@ -8,7 +8,6 @@ object ProduceStatus {
    * 获取颗粒度，表示有多少种状态
    *
    * @param maxValues 最大值
-   * @param value: 要映射状态的数值
    * @return 返回多少状态数量
    */
   def getGraininess(maxValues: Double): (Int, Int) = {
@@ -31,8 +30,8 @@ object ProduceStatus {
   /**
    * 根据当前物料历史上出库的最大值，为当前出库值映射出库状态
    *
-   * @param maxValues
-   * @param value
+   * @param maxValues: 当前物料历史上出库的最大值
+   * @param value: 要映射状态的数值
    * @return
    */
   def getStatus(maxValues: Double, value: Double): String = {

@@ -10,7 +10,7 @@ object CaculateQuantityStatusAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC
+    val sc = CreateSparkContext.getSC("CaculateQuantityStatus")
     // 聚合与分组
     val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = ByItemCDGroup.getGroups(sc)
     // 根据分组计算物料出库量所属出库状态
@@ -25,7 +25,9 @@ object CaculateQuantityStatusAPP {
             val quantityInfoes = infoes.map { // 计算出库量所属状态
               mqi => {
                 val value = mqi.quantity
-                mqi.status = ProduceStatus.getStatus(maxQuantity, value)
+                val status = ProduceStatus.getStatus(maxQuantity, value)
+                mqi.status = status._1 // 状态码
+                mqi.upper = status._2 // 状态上线值
                 mqi
               }
             }

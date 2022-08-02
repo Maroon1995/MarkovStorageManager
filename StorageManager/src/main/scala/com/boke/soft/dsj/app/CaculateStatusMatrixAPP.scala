@@ -13,7 +13,7 @@ object CaculateStatusMatrixAPP {
   def main(args: Array[String]): Unit = {
 
     // TODO 0 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC
+    val sc = CreateSparkContext.getSC("CaculateStatusMatrix")
     sc.setCheckpointDir("H:\\Project\\scalaworkspace\\StorageManagerSystem\\StorageManager\\src\\main\\checkpoint\\")
     val produce = new Produce(sc)
     // TODO 1 读取DoubleStatusCount和SingleStatusCount数据

@@ -14,7 +14,7 @@ object StatisticDoubleStatusCountAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC
+    val sc = CreateSparkContext.getSC("StatisticDoubleStatusCount")
     // 获取数据
     val produce = new Produce(sc)
     val MaterialQuantityStatus:RDD[MaterialQuantityInfo] = produce.materialQuantityStatusRDD // 获取物料的出库量和状态数据

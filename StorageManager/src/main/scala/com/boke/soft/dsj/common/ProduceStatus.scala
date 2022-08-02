@@ -34,18 +34,20 @@ object ProduceStatus {
    * @param value: 要映射状态的数值
    * @return
    */
-  def getStatus(maxValues: Double, value: Double): String = {
-    var status: String = null
+  def getStatus(maxValues: Double, value: Double): (String,Int) = {
+    var status: (String,Int) = null
     val tuple = getGraininess(maxValues)
     val intervalValue = tuple._1 // 状态步长
     val statusNumber = tuple._2 // 状态个数
     val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
     val wheelNumber = math.ceil(statusNumber / 26).toInt // 循环baseStatus多少轮
     for (i <- 0 to statusNumber) {
-      if (value >= i * intervalValue && value < (i + 1) * intervalValue) {
+      val upper = (i + 1) * intervalValue  // 上限
+      val lower = i * intervalValue // 下限
+      if (value >= lower && value < upper) {
         for (j <- 0 to wheelNumber) {
           if (i >= j * 26 && i < (j + 1) * 26) {
-            status = baseStatus(i - j * 26) * (j + 1)
+            status = (baseStatus(i - j * 26) * (j + 1),upper)
           }
         }
       }

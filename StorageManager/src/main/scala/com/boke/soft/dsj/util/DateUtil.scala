@@ -69,8 +69,14 @@ object DateUtil {
     DateTime.parse(yesterday).minusDays(n).toString(DATE_FORMAT)
   }
 
-  def getNowTime: String = {
-    DateTime.now().toString(TIME_FORMAT)
+  /**
+   * 获取当前日期
+   * @param format: 日期格式
+   * @return
+   */
+  def getNowTime(format:String): String = {
+
+    DateTime.now().toString(DateTimeFormat.forPattern(format))
   }
 
   /**

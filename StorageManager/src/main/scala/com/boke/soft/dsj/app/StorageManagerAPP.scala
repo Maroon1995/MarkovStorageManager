@@ -4,20 +4,21 @@ import com.boke.soft.dsj.bean.{MaterialQuantityInfo, ResultsInfo}
 import com.boke.soft.dsj.common.MyMath
 import com.boke.soft.dsj.process.CreateSparkContext
 import com.boke.soft.dsj.produce.Produce
-import com.boke.soft.dsj.util.JDBCUtil
+import com.boke.soft.dsj.util.{DateUtil, JDBCUtil}
 import org.apache.spark.rdd.RDD
 
 object StorageManagerAPP {
   def main(args: Array[String]): Unit = {
-    val sc = CreateSparkContext.getSC
+    val sc = CreateSparkContext.getSC("StorageManager")
     val connection = JDBCUtil.getConnection
-    // 统计获取每种物料的当前库存量
+    // TODO 1-统计获取每种物料的当前库存量
+    val currentYearMonth = DateUtil.getNowTime("yyyy/MM")
     val currentInventories: List[List[Any]] = JDBCUtil.getBatchDataFromMysql(
       connection,
-      sql = "",
-      Array()
+      sql = "select item_cd, current_stock from material_stock where insert_datetime = {}",
+      Array(currentYearMonth)
     )
-    // 统计获取每种物料的历史出库最大值
+    // TODO 2-统计获取每种物料的历史出库最大值
     // 聚合与分组
     val produce = new Produce(sc)
     val MaterialQuantityStatus: RDD[MaterialQuantityInfo] = produce.materialQuantityStatusRDD // 获取物料的出库量和状态数据
@@ -34,12 +35,11 @@ object StorageManagerAPP {
 
     }
 
+    // TODO 3-统计获取每种物料的当前需求提报量
 
-    // 统计获取每种物料的当前需求提报量
+    // TODO 4-计算当前库存量能够覆盖未来一个月的出库量的概率
 
-    // 计算当前库存量能够覆盖未来一个月的出库量的概率
-
-    // 结果输出
+    // 结果输出到mysql
 
     // 关闭资源
     sc.stop()

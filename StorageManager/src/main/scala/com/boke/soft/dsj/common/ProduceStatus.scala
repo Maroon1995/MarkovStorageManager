@@ -30,24 +30,24 @@ object ProduceStatus {
   /**
    * 根据当前物料历史上出库的最大值，为当前出库值映射出库状态
    *
-   * @param maxValues: 当前物料历史上出库的最大值
-   * @param value: 要映射状态的数值
+   * @param maxValues : 当前物料历史上出库的最大值
+   * @param value     : 要映射状态的数值
    * @return
    */
-  def getStatus(maxValues: Double, value: Double): (String,Int) = {
-    var status: (String,Int) = null
+  def getStatus(maxValues: Double, value: Double): (String, Int) = {
+    var status: (String, Int) = null
     val tuple = getGraininess(maxValues)
     val intervalValue = tuple._1 // 状态步长
     val statusNumber = tuple._2 // 状态个数
     val baseStatus = Array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
     val wheelNumber = math.ceil(statusNumber / 26).toInt // 循环baseStatus多少轮
     for (i <- 0 to statusNumber) {
-      val upper = (i + 1) * intervalValue  // 上限
+      val upper = (i + 1) * intervalValue // 上限
       val lower = i * intervalValue // 下限
       if (value >= lower && value < upper) {
         for (j <- 0 to wheelNumber) {
           if (i >= j * 26 && i < (j + 1) * 26) {
-            status = (baseStatus(i - j * 26) * (j + 1),upper)
+            status = ("Z" * j + baseStatus(i - j * 26), upper) // 状态赋值： 满Z加1位
           }
         }
       }
@@ -57,6 +57,7 @@ object ProduceStatus {
 
   /**
    * 获取出库状态列表
+   *
    * @param maxValues ：最大出库值
    * @return
    */

@@ -64,4 +64,6 @@ class Produce(sc:SparkContext) extends Serializable {
     val value: RDD[DoubleStatusCount] = hbaseReader.toDoubleStatusCountRDD(sql)
     value
   }
+
+
 }

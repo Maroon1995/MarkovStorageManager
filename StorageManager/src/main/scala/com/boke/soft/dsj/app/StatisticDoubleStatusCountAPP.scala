@@ -3,7 +3,7 @@ package com.boke.soft.dsj.app
 import com.boke.soft.dsj.bean.{DoubleStatusCount, MaterialQuantityInfo}
 import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
 import com.boke.soft.dsj.common.SetOperations.Cartesian
-import com.boke.soft.dsj.process.CreateSparkContext
+import com.boke.soft.dsj.process.{CreateSpark, CreateSparkContext}
 import com.boke.soft.dsj.produce.Produce
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -14,9 +14,9 @@ object StatisticDoubleStatusCountAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC("StatisticDoubleStatusCount")
+    val spark = CreateSpark.getSpark("StatisticDoubleStatusCount")
     // 获取数据
-    val produce = new Produce(sc)
+    val produce = new Produce(spark)
     val MaterialQuantityStatus:RDD[MaterialQuantityInfo] = produce.materialQuantityStatusRDD // 获取物料的出库量和状态数据
     val MaterialQuantityStatusMap: RDD[(String, MaterialQuantityInfo)] = MaterialQuantityStatus.map(mqi => (mqi.item_cd, mqi))
     val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = MaterialQuantityStatusMap.groupByKey()
@@ -67,7 +67,7 @@ object StatisticDoubleStatusCountAPP {
     )
 
     // 关闭资源
-    sc.stop()
+    spark.stop()
   }
 
 }

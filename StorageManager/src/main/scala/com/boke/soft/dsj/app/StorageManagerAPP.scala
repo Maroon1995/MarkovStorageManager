@@ -3,20 +3,26 @@ package com.boke.soft.dsj.app
 import com.boke.soft.dsj.bean.{MaterialQuantityInfo, ResultsInfo}
 import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
 import com.boke.soft.dsj.io.{HBaseReader, MysqlReader}
-import com.boke.soft.dsj.process.CreateSparkContext
+import com.boke.soft.dsj.process.{CreateSpark, CreateSparkContext}
 import com.boke.soft.dsj.produce.Produce
 import com.boke.soft.dsj.util.{DateUtil, JDBCUtil}
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 import scala.collection.mutable
 
 object StorageManagerAPP {
   def main(args: Array[String]): Unit = {
     // TODO 1-创建环境和实例化对象
-    val sc = CreateSparkContext.getSC("StorageManager")
+    val spark: SparkSession = CreateSpark.getSpark("StorageManager")
+//    val sc = CreateSparkContext.getSC("StorageManager")
+    val sc = spark.sparkContext
+    val sqlContext = spark.sqlContext
     val hbaseReader = new HBaseReader(sc)
-    val mysqlReader = new MysqlReader
-    val produce = new Produce(sc)
+    val mysqlReader = new MysqlReader(sqlContext)
+    val produce = new Produce(spark)
+    val jdbc = new JDBCUtil()
     // TODO 2-根据物料编码对物料的出库和状态进行分组
     val MaterialQuantityStatus: RDD[MaterialQuantityInfo] = produce.materialQuantityStatusRDD // 获取物料的出库量和状态数据
     val MaterialQuantityStatusMap: RDD[(String, MaterialQuantityInfo)] = MaterialQuantityStatus.map(mqi => (mqi.item_cd, mqi))
@@ -26,7 +32,7 @@ object StorageManagerAPP {
       case (item_cd, mqiIter) =>
         val currentYearMonthDays = DateUtil.getNowTime("yyyy-MM-dd")
         // (1) 统计获取每种物料的当前库存量
-        val currentInventories: List[mutable.HashMap[String, Double]] = mysqlReader.currentMaterialStock()
+        val currentInventories: List[mutable.HashMap[String, Any]] = produce.materialStock(tableName = "material_stock","4")
         // (2) 统计计算物料的历史出库最大值
         val mqiList = mqiIter.toList
         val math = new MyMath()
@@ -42,9 +48,10 @@ object StorageManagerAPP {
         val itemDesc = mqiList.head.item_desc // 物料名称
         var resultsInfo: ResultsInfo = null
         for (elemMap <- currentInventories) {
-          val stock: Option[Double] = elemMap.get(item_cd) //获取当前物料的库存
+          val stock: Option[Any] = elemMap.get(item_cd) //获取当前物料的库存
           resultsInfo = stock match {
-            case Some(value) => { // ****如果存在库存值
+            case Some(values) => { // ****如果存在库存值
+              val value: Double = values.toString.toDouble
               val tuple = ProduceStatus.getStatus(maxQuantity, value) // 当前物料库存值所处的状态和状态上限值
               val stockStatusY = tuple._1
               val stockUpper = tuple._2
@@ -69,15 +76,17 @@ object StorageManagerAPP {
           }
         }
         resultsInfo
-    }
+    }.cache()
 
-    // TODO 4-结果输出到mysql
+    // TODO 4-输出结果
+    // (1)输出到mysql
     ResultsInfoRDD.foreachPartition(
       resultsIter => {
-        val connection = JDBCUtil.getConnection
+        val connection = jdbc.getConnection
         val sql =
           s"""
-             |insert into
+             |insert into material_safety_stock_manager ("item_cd","insert_date","item_desc","inventory","probability","maxQuantity","demand")
+             |values (?,?,?,?,?,?,?)
              |""".stripMargin
         val params: Iterator[Array[Any]] = resultsIter.map(
           ri => Array(
@@ -85,11 +94,20 @@ object StorageManagerAPP {
             ri.probability, ri.maxQuantity, ri.demand
           )
         )
-        JDBCUtil.setUpdateBatch(connection, sql, params) // 将结果写入到数据库
+        jdbc.setUpdateBatch(connection, sql, params) // 将结果写入到数据库
       }
+    )
+    // 同时备份到hbase上
+    import org.apache.phoenix.spark._
+    ResultsInfoRDD.saveToPhoenix(
+      tableName = "MATERIAL_SAFETY_STOCK",
+      Seq("item_cd", "insert_date", "item_desc", "inventory", "probability", "maxQuantity", "demand"),
+      new Configuration,
+      Some("master,centos-oracle,Maroon:2181")
     )
     // TODO 5-关闭资源
     sc.stop()
+    spark.stop()
   }
 
 }

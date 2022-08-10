@@ -4,7 +4,7 @@ import org.apache.spark.rdd.RDD
 import com.boke.soft.dsj.common.MyMath
 import com.boke.soft.dsj.produce.Produce
 import org.apache.hadoop.conf.Configuration
-import com.boke.soft.dsj.process.CreateSparkContext
+import com.boke.soft.dsj.process.CreateSpark
 import com.boke.soft.dsj.bean.{DoubleStatusCount, SingleStatusCount, StatusMatrix}
 
 
@@ -13,9 +13,8 @@ object CaculateStatusMatrixAPP {
   def main(args: Array[String]): Unit = {
 
     // TODO 0 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC("CaculateStatusMatrix")
-    sc.setCheckpointDir("H:\\Project\\scalaworkspace\\StorageManagerSystem\\StorageManager\\src\\main\\checkpoint\\")
-    val produce = new Produce(sc)
+    val spark = CreateSpark.getSpark("CaculateStatusMatrix")
+    val produce = new Produce(spark)
     // TODO 1 读取DoubleStatusCount和SingleStatusCount数据
     val singleStatusCount: RDD[SingleStatusCount] = produce.singleStatusCount.cache()
     val doubleStatusCount: RDD[DoubleStatusCount] = produce.doubleStatusCount.cache()
@@ -60,7 +59,7 @@ object CaculateStatusMatrixAPP {
       Some("master,centos-oracle,Maroon:2181")
     )
     // TODO 4 关闭环境
-    sc.stop()
+    spark.stop()
   }
 
 }

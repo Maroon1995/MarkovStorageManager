@@ -2,7 +2,7 @@ package com.boke.soft.dsj.app
 
 import com.boke.soft.dsj.bean.MaterialQuantityInfo
 import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
-import com.boke.soft.dsj.process.{ByItemCDGroup, CreateSparkContext}
+import com.boke.soft.dsj.process.{ByItemCDGroup, CreateSpark, CreateSparkContext}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
 
@@ -10,9 +10,9 @@ object CaculateQuantityStatusAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC("CaculateQuantityStatus")
+    val spark = CreateSpark.getSpark("CaculateQuantityStatus")
     // 聚合与分组
-    val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = ByItemCDGroup.getGroups(sc)
+    val MaterialQuantityGroups: RDD[(String, Iterable[MaterialQuantityInfo])] = ByItemCDGroup.getGroups(spark)
     // 根据分组计算物料出库量所属出库状态
     val quantityStatus = MaterialQuantityGroups.mapPartitions {
       iter => {
@@ -41,11 +41,11 @@ object CaculateQuantityStatusAPP {
     import org.apache.phoenix.spark._
     quantityStatus.saveToPhoenix(
       "QUANTITY_STATUS",
-      Seq("item_cd","item_desc","insert_datetime","quantity","status"),
+      Seq("item_cd","item_desc","insert_datetime","quantity","status","upper"),
       new Configuration,
       Some("master,centos-oracle,Maroon:2181")
     )
     // 关闭资源
-    sc.stop()
+    spark.stop()
   }
 }

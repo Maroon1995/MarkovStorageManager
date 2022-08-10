@@ -3,8 +3,8 @@ package com.boke.soft.dsj.process
 import com.boke.soft.dsj.bean.MaterialQuantityInfo
 import com.boke.soft.dsj.produce.Produce
 import com.boke.soft.dsj.util.DateUtil.getDateMonths
-import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 object ByItemCDGroup {
 
@@ -14,9 +14,9 @@ object ByItemCDGroup {
    * @param sc : spark的运行时环境和上下文对象
    * @return
    */
-  def getGroups(sc: SparkContext): RDD[(String, Iterable[MaterialQuantityInfo])] = {
+  def getGroups(spark: SparkSession): RDD[(String, Iterable[MaterialQuantityInfo])] = {
     // 读取数据：HBase数库中读取原始数据表ORIGINAL_DATA
-    val produce = new Produce(sc)
+    val produce = new Produce(spark)
     val MaterialQuantityRDD: RDD[MaterialQuantityInfo] = produce.materialQuantityRDD
     val MaterialQuantityMap: RDD[((String, String, String), Double)] = MaterialQuantityRDD.mapPartitions {
       mqiIter =>
@@ -39,7 +39,7 @@ object ByItemCDGroup {
     val MaterialQuantityRDDs = valueGroup.mapPartitions {
       mapIter => {
         val mapList = mapIter.toList
-        val historyTime = getDateMonths(66, "yyyy/MM")
+        val historyTime = getDateMonths(36, "yyyy/MM")
         val currentTime = getDateMonths(0, "yyyy/MM")
         val dateStringList: List[String] = CreateDateTimeList.dateMonthList(historyTime, currentTime)
         val mapper = mapList.flatMap{

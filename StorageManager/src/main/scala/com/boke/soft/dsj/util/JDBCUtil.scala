@@ -18,7 +18,7 @@ executeUpdate与execute的区别：
 2、可用于执行任何SQL语句，返回一个boolean值，表明执行该SQL语句是否返回了ResultSet。
 但它执行SQL语句时比较麻烦，通常我们没有必要使用execute方法来执行SQL语句，而是使用executeQuery或executeUpdate更适合
 */
-object JDBCUtil {
+class JDBCUtil extends Serializable {
 
   // 初始化连接池
   var dataSource: DataSource = init()

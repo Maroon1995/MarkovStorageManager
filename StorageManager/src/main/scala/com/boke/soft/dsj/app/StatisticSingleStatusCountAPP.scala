@@ -2,7 +2,7 @@ package com.boke.soft.dsj.app
 
 import com.boke.soft.dsj.bean.{MaterialQuantityInfo, SingleStatusCount}
 import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
-import com.boke.soft.dsj.process.CreateSparkContext
+import com.boke.soft.dsj.process.{CreateSpark, CreateSparkContext}
 import com.boke.soft.dsj.produce.Produce
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -11,8 +11,9 @@ object StatisticSingleStatusCountAPP {
 
   def main(args: Array[String]): Unit = {
     // 创建运行环境和上下文环境对象
-    val sc = CreateSparkContext.getSC("StatisticSingleStatusCount")
-    val produce = new Produce(sc)
+    val spark = CreateSpark.getSpark("StatisticSingleStatusCount")
+    val produce = new Produce(spark)
+
     // 聚合与分组
     val MaterialQuantityStatus: RDD[MaterialQuantityInfo] = produce.materialQuantityStatusRDD // 获取物料的出库量和状态数据
     val MaterialQuantityStatusMap: RDD[(String, MaterialQuantityInfo)] = MaterialQuantityStatus.map(mqi => (mqi.item_cd, mqi))
@@ -58,7 +59,7 @@ object StatisticSingleStatusCountAPP {
       Some("master,centos-oracle,Maroon:2181")
     )
 
-    sc.stop()
+    spark.stop()
   }
 
 }

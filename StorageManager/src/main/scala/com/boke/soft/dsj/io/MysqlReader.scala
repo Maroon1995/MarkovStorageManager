@@ -1,21 +1,17 @@
 package com.boke.soft.dsj.io
 
-import com.alibaba.fastjson.JSON
 import com.boke.soft.dsj.common.Transform
 import com.boke.soft.dsj.util.PropertiesUtil
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
+import org.apache.spark.sql.{DataFrame, SQLContext}
 
 import java.util.Properties
-import scala.collection.mutable
-import scala.swing.Table.ElementMode.Column
 
 class MysqlReader(sqlContext: SQLContext) extends Serializable {
 
 
   val config: Properties = PropertiesUtil.load("jdbc.properties") // 加载配置文件
   val url = config.getProperty("dbUrl")
+  val transform = new Transform()
 
   /**
    *
@@ -40,7 +36,7 @@ class MysqlReader(sqlContext: SQLContext) extends Serializable {
    */
   def getQueryData(tableName: String, numPartitions: String): DataFrame = {
     val properties = init(numPartitions)
-    val dataFrame:DataFrame = sqlContext.read.jdbc(url, tableName, properties).select(col("item_cd"),col("current_stock"))
+    val dataFrame:DataFrame = sqlContext.read.jdbc(url, tableName, properties)
     dataFrame
   }
 
@@ -57,6 +53,5 @@ class MysqlReader(sqlContext: SQLContext) extends Serializable {
     val dataFrame:DataFrame = sqlContext.read.jdbc(url, tableName, predicates, properties)
     dataFrame
   }
-
 
 }

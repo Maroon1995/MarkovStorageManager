@@ -19,7 +19,9 @@ object CreateSpark {
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     // 注册要序列化的类
     // 注意：即使使用 Kryo 序列化，也要继承 Serializable 接口
-    conf.registerKryoClasses(Array(classOf[Produce], classOf[HBaseReader], classOf[MysqlReader], classOf[MyMath], classOf[DruidPooledConnection], classOf[Transform]))
+    conf.registerKryoClasses(Array(classOf[Produce], classOf[HBaseReader],
+      classOf[MysqlReader], classOf[MyMath], classOf[DruidPooledConnection],
+      classOf[Transform]))
     val spark = SparkSession.builder().config(conf).getOrCreate()
     spark
   }

@@ -1,6 +1,8 @@
 package com.boke.soft.dsj.common
 
-import com.alibaba.fastjson.JSONObject
+import com.alibaba.fastjson.{JSON, JSONObject}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{DataFrame, Dataset}
 
 import java.util
 import scala.collection.mutable
@@ -12,6 +14,7 @@ class Transform extends Serializable {
 
   /**
    * 将JSONObject转换成HashMap
+   *
    * @param jsonObject
    * @return
    */
@@ -30,6 +33,25 @@ class Transform extends Serializable {
       case e: Exception => e.printStackTrace()
     }
     hashMap
+  }
+
+  /**
+   * 将DataFrame转换成RDD[mutable.HashMap[String, Any]]
+   * @param dataFrame
+   * @return
+   */
+  def dataFrameToHashMapRDD(dataFrame: DataFrame): RDD[mutable.HashMap[String, Any]] = {
+    val jsonDataset: Dataset[String] = dataFrame.toJSON
+    //    val rdd: RDD[Row] = dataFrame.rdd
+    val jsonStringRDD: RDD[String] = jsonDataset.rdd
+    val hashMapRDD: RDD[mutable.HashMap[String, Any]] = jsonStringRDD.map(
+      jsonString => {
+        val jSONObject = JSON.parseObject(jsonString)
+        val hashMap = jSONObjectToHashMap(jSONObject)
+        hashMap
+      }
+    )
+    hashMapRDD
   }
 
 }

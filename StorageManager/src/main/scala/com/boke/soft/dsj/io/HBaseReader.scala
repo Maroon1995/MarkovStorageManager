@@ -17,28 +17,11 @@ class HBaseReader(sc: SparkContext) extends Serializable {
   var numPartition: Int = 4
 
   /**
-   * 将查询结果转换成ResultSet
-   */
-  def toResultSet(sql: String): ResultSet = {
-    val resultSet = PhoenixUtil.queryToResultSet(sql)
-    PhoenixUtil.close()
-    resultSet
-  }
-
-  /**
-   * 将查询结果转换成JSONObject列表
-   */
-  def toJSONObjectList(sql: String): List[JSONObject] = {
-    val jSONObjects = PhoenixUtil.queryToJSONObjectList(sql)
-    jSONObjects
-  }
-
-  /**
    * 将查询结果转换成JSONObject的RDD
    */
   def toJSONObjectRDD(sql: String): RDD[JSONObject] = {
     val jSONObjects = PhoenixUtil.queryToJSONObjectList(sql)
-    val jsonObjectsRDD: RDD[JSONObject] = sc.makeRDD(jSONObjects.toSeq).repartition(numPartition).cache()
+    val jsonObjectsRDD: RDD[JSONObject] = sc.makeRDD(jSONObjects.toSeq).repartition(numPartition)
     jsonObjectsRDD
   }
 
@@ -69,7 +52,7 @@ class HBaseReader(sc: SparkContext) extends Serializable {
    */
   def toMaterialQuantityInfoRDD(sql: String): RDD[MaterialQuantityInfo] = {
     val MaterialQuantityInfoList = toMaterialQuantityInfoList(sql)
-    val MaterialQuantityInfoRDD: RDD[MaterialQuantityInfo] = sc.makeRDD(MaterialQuantityInfoList.toSeq).repartition(numPartition).cache()
+    val MaterialQuantityInfoRDD: RDD[MaterialQuantityInfo] = sc.makeRDD(MaterialQuantityInfoList.toSeq).repartition(numPartition)
     MaterialQuantityInfoRDD
   }
 
@@ -95,7 +78,7 @@ class HBaseReader(sc: SparkContext) extends Serializable {
 
   def toMaterialQuantityStatusRDD(sql: String): RDD[MaterialQuantityInfo] = {
     val MaterialQuantityStatusList = toMaterialQuantityStatusList(sql)
-    val MaterialQuantityStatusRDD: RDD[MaterialQuantityInfo] = sc.makeRDD(MaterialQuantityStatusList.toSeq).repartition(numPartition).cache()
+    val MaterialQuantityStatusRDD: RDD[MaterialQuantityInfo] = sc.makeRDD(MaterialQuantityStatusList.toSeq).repartition(numPartition)
     MaterialQuantityStatusRDD
   }
 
@@ -115,7 +98,7 @@ class HBaseReader(sc: SparkContext) extends Serializable {
     }
     // 释放资源
     PhoenixUtil.close()
-    val doubleStatusCountRDD: RDD[DoubleStatusCount] = sc.makeRDD(listBufferDSC.toSeq).repartition(numPartition)().cache()
+    val doubleStatusCountRDD: RDD[DoubleStatusCount] = sc.makeRDD(listBufferDSC.toSeq).repartition(numPartition)()
     doubleStatusCountRDD
   }
 
@@ -134,7 +117,7 @@ class HBaseReader(sc: SparkContext) extends Serializable {
     }
     // 释放资源
     PhoenixUtil.close()
-    val singleStatusCountRDD: RDD[SingleStatusCount] = sc.makeRDD(listBufferSSC.toSeq).repartition(numPartition)().cache()
+    val singleStatusCountRDD: RDD[SingleStatusCount] = sc.makeRDD(listBufferSSC.toSeq).repartition(numPartition)()
     singleStatusCountRDD
   }
 }

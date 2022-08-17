@@ -7,12 +7,10 @@ import com.boke.soft.dsj.process.CreateSpark
 import com.boke.soft.dsj.produce.Produce
 import com.boke.soft.dsj.util.{DateUtil, PhoenixUtil, SparkDBUtil}
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Dataset, SaveMode, SparkSession}
 import org.apache.spark.sql.functions.col
 
-import scala.collection.mutable
 
 object StorageManagerAPP {
   def main(args: Array[String]): Unit = {

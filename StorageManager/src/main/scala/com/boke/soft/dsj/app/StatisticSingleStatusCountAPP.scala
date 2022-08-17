@@ -2,7 +2,7 @@ package com.boke.soft.dsj.app
 
 import com.boke.soft.dsj.bean.{MaterialQuantityInfo, SingleStatusCount}
 import com.boke.soft.dsj.common.{MyMath, ProduceStatus}
-import com.boke.soft.dsj.process.{CreateSpark, CreateSparkContext}
+import com.boke.soft.dsj.process.CreateSpark
 import com.boke.soft.dsj.produce.Produce
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD

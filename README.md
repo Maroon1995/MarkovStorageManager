@@ -27,8 +27,18 @@ SparkCore + SparkStreaming
 
 （1）先对数据进行状态计算： 
     执行完成`CaculateQuantityStatusAPP`后依次执行`StatisticSingleStatusCountAPP`、`StatisticDoubleStatusCountAPP`
+
 （2）获取马尔可夫状态矩阵：
     执行完成`CaculateStatusMatrixAPP`
 
+（3）获取物料的库存管理指标数据结果：
+    执行`StorageManagerAPP`
 
+1.3 结果存储
+
+（1）结果封装样例类对象：`StatusMatrix`
+
+（2）结果输出到mysql中，结果表为：`material_safety_stock_manager`
+
+（3）结果备份到hbase中，结果表为：`MATERIAL_SAFETY_STOCK`
 

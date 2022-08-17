@@ -7,7 +7,6 @@ import org.apache.hadoop.conf.Configuration
 import com.boke.soft.dsj.process.CreateSpark
 import com.boke.soft.dsj.bean.{DoubleStatusCount, SingleStatusCount, StatusMatrix}
 
-
 object CaculateStatusMatrixAPP {
 
   def main(args: Array[String]): Unit = {

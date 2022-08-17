@@ -1,11 +1,9 @@
 package com.boke.soft.dsj.io
 
-import com.alibaba.fastjson.JSONObject
 import com.boke.soft.dsj.bean.{DoubleStatusCount, MaterialQuantityInfo, SingleStatusCount}
 import com.boke.soft.dsj.util.PhoenixUtil
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-
 import scala.collection.mutable.ListBuffer
 
 class HBaseReader(sc: SparkContext) extends Serializable {

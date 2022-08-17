@@ -2,7 +2,6 @@ package com.boke.soft.dsj.common
 
 
 
-
 class MyMath extends Serializable {
 
   /**

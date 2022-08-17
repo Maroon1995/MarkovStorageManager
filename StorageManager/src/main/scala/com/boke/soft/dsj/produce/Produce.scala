@@ -32,7 +32,7 @@ class Produce(spark:SparkSession) extends Serializable {
   def materialQuantityStatusRDD: RDD[MaterialQuantityInfo] = {
     val sql =
       s"""
-         |select "item_cd", "item_desc","insert_datetime","quantity","status"
+         |select "item_cd", "item_desc","insert_datetime","quantity","status","upper"
          |from "QUANTITY_STATUS"
          |where "insert_datetime" >= '${historyTime}'
          |and "insert_datetime" <= '${currentTime}'

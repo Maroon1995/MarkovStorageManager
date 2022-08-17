@@ -10,7 +10,7 @@ object PhoenixUtil {
   var ps: PreparedStatement = _
   var resultSet: ResultSet = _
 
-  private def connection: Connection ={
+  private def connection: Connection = {
 
     // 加载配置文件参数
     val properties = PropertiesUtil.load("jdbc.properties")
@@ -40,26 +40,33 @@ object PhoenixUtil {
    */
   def queryToJSONObjectList(sql: String): List[JSONObject] = {
     // 获取连接配置
-    conn = connection
+    val connect = this.connection
     // 创建数据库操作对象
-    ps = conn.prepareStatement(sql)
+    val pss = connect.prepareStatement(sql)
     // 执行sql语句
-    resultSet = ps.executeQuery()
-    val resMetaData = resultSet.getMetaData // 获取数据的元数据信息
+    val rs = pss.executeQuery()
     // 处理结果集
     val listBufferJson = new ListBuffer[JSONObject]()
-    while (resultSet.next()) {
-      // 创建JSON对象
-      val jsonObject = new JSONObject()
-      // 将结果封装成Json对象
-      //{"erpcode":"xxx","if_new_material":"1"}
-      for (i <- 1 to resMetaData.getColumnCount) {
-        jsonObject.put(resMetaData.getColumnName(i), resultSet.getObject(i))
+    try {
+      val resMetaData = rs.getMetaData // 获取数据的元数据信息
+      while (rs.next()) {
+        // 创建JSON对象
+        val jsonObject = new JSONObject()
+        // 将结果封装成Json对象
+        //{"erpcode":"xxx","if_new_material":"1"}
+        for (i <- 1 to resMetaData.getColumnCount) {
+          jsonObject.put(resMetaData.getColumnName(i), rs.getObject(i))
+        }
+        listBufferJson.append(jsonObject)
       }
-      listBufferJson.append(jsonObject)
+    } catch {
+      case e: Exception => e.printStackTrace()
+    } finally {
+      // 释放资源
+      rs.close()
+      pss.close()
+      connect.close()
     }
-    // 释放资源
-    this.close()
     // 结果输出
     listBufferJson.toList
   }
@@ -69,9 +76,9 @@ object PhoenixUtil {
    */
   def close(): Unit = {
     if (resultSet != null) {
-      conn.close()
-      ps.close()
       resultSet.close()
+      ps.close()
+      conn.close()
     }
   }
 }

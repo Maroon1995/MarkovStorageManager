@@ -42,7 +42,6 @@ class Transform extends Serializable {
    */
   def dataFrameToHashMapRDD(dataFrame: DataFrame): RDD[mutable.HashMap[String, Any]] = {
     val jsonDataset: Dataset[String] = dataFrame.toJSON
-    //    val rdd: RDD[Row] = dataFrame.rdd
     val jsonStringRDD: RDD[String] = jsonDataset.rdd
     val hashMapRDD: RDD[mutable.HashMap[String, Any]] = jsonStringRDD.map(
       jsonString => {

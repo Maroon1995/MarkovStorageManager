@@ -6,7 +6,6 @@ import com.boke.soft.dsj.util.PhoenixUtil
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
-import java.sql.ResultSet
 import scala.collection.mutable.ListBuffer
 
 class HBaseReader(sc: SparkContext) extends Serializable {
@@ -15,15 +14,6 @@ class HBaseReader(sc: SparkContext) extends Serializable {
    * RDD重分区数
    */
   var numPartition: Int = 4
-
-  /**
-   * 将查询结果转换成JSONObject的RDD
-   */
-  def toJSONObjectRDD(sql: String): RDD[JSONObject] = {
-    val jSONObjects = PhoenixUtil.queryToJSONObjectList(sql)
-    val jsonObjectsRDD: RDD[JSONObject] = sc.makeRDD(jSONObjects.toSeq).repartition(numPartition)
-    jsonObjectsRDD
-  }
 
   /**
    * 将查询结果转封装成MaterialQuantityInfo列表
@@ -67,7 +57,8 @@ class HBaseReader(sc: SparkContext) extends Serializable {
         resultSet.getObject(2).toString,
         resultSet.getObject(3).toString,
         resultSet.getObject(4, classOf[Double]),
-        resultSet.getObject(5).toString
+        resultSet.getObject(5).toString,
+        resultSet.getObject(6, classOf[Long])
       )
       listBufferMQI.append(mqi)
     }
